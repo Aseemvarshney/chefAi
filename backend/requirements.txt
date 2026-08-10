@@ -1,0 +1,14 @@
+fastapi==0.109.2
+uvicorn[standard]==0.27.1
+sqlalchemy==2.0.25
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+python-multipart==0.0.9
+python-dotenv==1.0.1
+google-generativeai==0.4.1
+pydantic[email]==2.6.1
+httpx==0.26.0
+aiosqlite==0.20.0
+greenlet==3.0.3
+bcrypt==4.0.1
+twilio==9.3.3
