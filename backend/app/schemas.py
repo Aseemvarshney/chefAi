@@ -216,6 +216,7 @@ class AIChatMessage(BaseModel):
 class AIChatRequest(BaseModel):
     message: str
     history: Optional[List[AIChatMessage]] = []
+    persona: Optional[str] = "auguste"
 
 class FridgeModeRequest(BaseModel):
     ingredients: List[str]
@@ -267,6 +268,7 @@ class SmartFridgeSuggestion(BaseModel):
 class RAGChatRequest(BaseModel):
     message: str
     history: Optional[List[AIChatMessage]] = []
+    persona: Optional[str] = "auguste"
 
 class RAGChatResponse(BaseModel):
     message: str

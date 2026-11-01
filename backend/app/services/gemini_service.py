@@ -455,19 +455,43 @@ async def get_recommendations(search_history: list = None, favorites: list = Non
     return selected
 
 
-async def chat_with_assistant(message: str, history: list = None, user_name: str = "Chef") -> str:
-    """Conversational AI Chef Assistant supporting real Gemini AI and smart culinary fallback."""
+PERSONA_PROMPTS = {
+    "auguste": (
+        "You are Chef Auguste, an elite French Michelin-starred Master Chef. "
+        "You speak with refined elegance, culinary passion, and deep knowledge of classical gastronomy and wine pairings. "
+        "You emphasize technique, flavor balance, and address the user with respect as 'Chef'."
+    ),
+    "nonna": (
+        "You are Nonna Rosa, a warm, loving, and passionate Italian grandmother from Tuscany. "
+        "You cook from the heart, never skimp on garlic or good olive oil, and believe good food brings people together. "
+        "Use warm Italian expressions like 'Ciao tesoro!', 'Mamma mia!', and share secret homestyle kitchen wisdom."
+    ),
+    "marcus": (
+        "You are Coach Marcus, an energetic sports nutritionist and strength coach. "
+        "You view food as high-performance fuel for muscle building and energy. "
+        "You emphasize high protein, clean complex carbs, healthy fats, and macro efficiency. Call the user 'Champ' or 'Athlete'."
+    ),
+    "sam": (
+        "You are Speedy Sam, a super resourceful 15-minute kitchen hacker and college budget genius. "
+        "You love air-fryers, one-pan meals, minimal dish-washing, and making delicious food in under 15 minutes. "
+        "Keep it fun, fast-paced, and wildly practical!"
+    )
+}
+
+
+async def chat_with_assistant(message: str, history: list = None, user_name: str = "Chef", persona: str = "auguste") -> str:
+    """Conversational AI Chef Assistant supporting multiple chef personas."""
     msg = message.strip()
     msg_lower = msg.lower()
+    persona_key = persona.lower() if persona else "auguste"
+    persona_bio = PERSONA_PROMPTS.get(persona_key, PERSONA_PROMPTS["auguste"])
 
     if GEMINI_AVAILABLE:
         try:
             sys_prompt = (
-                "You are ChefAI Assistant, an intelligent, enthusiastic, and versatile AI assistant. "
-                "You can answer ANY question asked by the user, providing friendly, clear, precise, and practical answers. "
-                "Whether the user asks about recipes, cooking techniques, food science, kitchen safety, dietary advice, "
-                "ingredient substitutions, meal planning, or any general question or topic, provide comprehensive, "
-                "helpful, and engaging information. Format your response beautifully with markdown and emojis."
+                f"{persona_bio}\n"
+                "You can answer ANY cooking or culinary question asked by the user with clear, practical, and inspiring answers. "
+                "Format your response beautifully with markdown, bullet points, and appetizing emojis."
             )
             history_text = ""
             if history:
@@ -487,17 +511,31 @@ async def chat_with_assistant(message: str, history: list = None, user_name: str
         except Exception as e:
             print(f"Gemini chat error: {e}")
 
-    # ── Smart Culinary Mock Responses ──────────────────────────────────────
+    # ── Smart Culinary Mock Responses by Persona ─────────────────────────
     if any(w in msg_lower for w in ["hi", "hello", "hey", "start"]):
-        return (
-            f"Hello {user_name}! 👨‍🍳 I'm your **ChefAI Cooking Assistant**!\n\n"
-            "I'm here to help you with:\n"
-            "- 🍲 **Recipe Ideas** & Instant Instructions\n"
-            "- 🔄 **Ingredient Substitutions** (e.g. egg or buttermilk alternatives)\n"
-            "- ⏱️ **Quick Meal Ideas** (15-min or 30-min dishes)\n"
-            "- 🥗 **Dietary Advice** (Keto, Vegan, High-Protein)\n\n"
-            "What are we cooking today?"
-        )
+        if persona_key == "nonna":
+            return (
+                f"Ciao {user_name}, tesoro mio! 👵 Nonna Rosa is so happy you're here! "
+                "Are you eating enough? Come, let's cook something with love—a velvety sauce, fresh pasta, or whatever we find in your kitchen. "
+                "Tell me, what are you craving today?"
+            )
+        elif persona_key == "marcus":
+            return (
+                f"Let's get after it, {user_name}! 🏋️ Coach Marcus checking in. "
+                "Time to fuel that body right! What are your macro targets today? Need 40g+ protein ideas, lean dinner prep, or quick clean fuel?"
+            )
+        elif persona_key == "sam":
+            return (
+                f"Yo {user_name}! ⚡ Speedy Sam in the house. "
+                "Rule #1 in my kitchen: maximum flavor, under 15 minutes, and preferably one pan so we don't do dishes. "
+                "What's in your fridge right now? Let's whip something up!"
+            )
+        else:
+            return (
+                f"Bonjour, {user_name}! 👨‍🍳 Chef Auguste at your service. "
+                "Welcome to the ChefAI culinary atelier. Whether you seek to master a delicate emulsion, balance acidity, or create an exquisite menu, I am here to guide your craft. "
+                "What masterpiece shall we create?"
+            )
 
     if any(w in msg_lower for w in ["substitute", "replace", "instead of", "swap"]):
         return (
@@ -839,12 +877,16 @@ async def get_smart_fridge_suggestions(ingredients: list, dietary_pref: str = "n
     return suggestions[:4]
 
 
-async def rag_chat(message: str, context: str = "", history: list = None, user_name: str = "Chef") -> str:
-    """Chat assistant augmented with grounded recipe context (RAG)."""
+async def rag_chat(message: str, context: str = "", history: list = None, user_name: str = "Chef", persona: str = "auguste") -> str:
+    """Chat assistant augmented with grounded recipe context (RAG) and chef personas."""
+    persona_key = persona.lower() if persona else "auguste"
+    persona_bio = PERSONA_PROMPTS.get(persona_key, PERSONA_PROMPTS["auguste"])
+
     if GEMINI_AVAILABLE:
         try:
             sys_prompt = (
-                "You are ChefAI, an expert culinary AI assistant grounded with specific knowledge from the user's recipe library.\n"
+                f"{persona_bio}\n"
+                "You are an expert culinary AI assistant grounded with specific knowledge from the user's recipe library.\n"
                 "When answering the user's question, strictly reference and prioritize the provided saved recipe context.\n"
                 "If the context contains relevant details, cite the recipe names explicitly and give accurate steps/ingredients.\n"
                 "Format your response with markdown, bullet points, and appetizing emojis."
@@ -871,13 +913,14 @@ async def rag_chat(message: str, context: str = "", history: list = None, user_n
 
     # Fallback response
     if context:
+        greeting = "Bonjour" if persona_key == "auguste" else "Ciao" if persona_key == "nonna" else "Let's go" if persona_key == "marcus" else "Yo"
         return (
-            f"Hello {user_name}! Based on your saved recipe library, here is what I found:\n\n"
+            f"{greeting} {user_name}! Based on your saved recipe library, here is what I found:\n\n"
             f"{context}\n\n"
             f"To answer your question (*\"{message}\"*): You can use these recipes as your main reference! "
             "Let me know if you need specific ingredient scaling, substitutions, or cooking steps."
         )
 
-    return await chat_with_assistant(message=message, history=history, user_name=user_name)
+    return await chat_with_assistant(message=message, history=history, user_name=user_name, persona=persona)
 
 

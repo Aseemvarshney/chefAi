@@ -20,6 +20,7 @@ async def ai_chat(
         message=data.message,
         history=data.history,
         user_name=current_user.name if current_user else "Chef",
+        persona=data.persona or "auguste",
     )
     return {"message": data.message, "response": response_text}
 
@@ -169,6 +170,7 @@ async def rag_chat(
         context=context_text,
         history=data.history,
         user_name=current_user.name if current_user else "Chef",
+        persona=data.persona or "auguste",
     )
     return schemas.RAGChatResponse(
         message=data.message,

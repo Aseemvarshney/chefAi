@@ -59,6 +59,7 @@ def _save_recipe_to_db(db: Session, data: dict, servings: int) -> models.Recipe:
 
 
 @router.post("/search", response_model=schemas.RecipeOut)
+@router.post("/generate", response_model=schemas.RecipeOut)
 async def search_recipe(
     search: schemas.RecipeSearch,
     db: Session = Depends(get_db),
