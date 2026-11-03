@@ -11,3 +11,7 @@ ENV/
 dist/
 build/
 *.log
+.venv-research/
+dataset/
+*.joblib
+research_results/*.joblib

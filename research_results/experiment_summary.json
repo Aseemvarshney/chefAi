@@ -1,0 +1,13 @@
+{
+  "train_cutoff_exclusive": "2013-09-20 00:00:00",
+  "test_cutoff_inclusive": "2015-06-21 00:00:00",
+  "train_rows_after_filter": 500147,
+  "validation_rows_after_filter": 10460,
+  "test_rows_after_filter": 4962,
+  "eligible_users": 16044,
+  "eligible_recipes": 37841,
+  "validation_users_evaluated": 2183,
+  "test_users_evaluated": 1142,
+  "selected_collaborative_weight_alpha": 0.75,
+  "note": "Ranking metrics use held-out rated items plus sampled unseen candidates; see paper for protocol."
+}
