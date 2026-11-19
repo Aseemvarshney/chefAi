@@ -49,6 +49,7 @@ class User(Base):
     search_history = relationship("SearchHistory", back_populates="user", cascade="all, delete")
     otp_requests = relationship("OTPRequest", back_populates="user", cascade="all, delete")
     reviews = relationship("Review", back_populates="user", cascade="all, delete")
+    login_logs = relationship("LoginLog", back_populates="user", cascade="all, delete")
 
 # ─── Recipe ──────────────────────────────────────────────────────────────────
 
@@ -204,5 +205,22 @@ class Review(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
     user = relationship("User", back_populates="reviews")
+
+
+# ─── Login Log ────────────────────────────────────────────────────────────────
+
+class LoginLog(Base):
+    __tablename__ = "login_logs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    email = Column(String(255), nullable=False)
+    success = Column(Boolean, nullable=False)
+    ip_address = Column(String(45), nullable=True)
+    user_agent = Column(Text, nullable=True)
+    reason = Column(String(255), nullable=True)
+    login_time = Column(DateTime(timezone=True), server_default=func.now())
+
+    user = relationship("User", back_populates="login_logs")
 
 # Update User model to include reviews relationship

@@ -16,24 +16,15 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
 def log_login_attempt(db: Session, email: str, success: bool, ip_address: str,
                        user_agent: str, reason: str = "", user_id: int = None):
     try:
-        db.execute(text("""
-            CREATE TABLE IF NOT EXISTS login_logs (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER,
-                email VARCHAR(255) NOT NULL,
-                success BOOLEAN NOT NULL,
-                ip_address VARCHAR(45),
-                user_agent TEXT,
-                reason VARCHAR(255),
-                login_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (user_id) REFERENCES users (id)
-            )
-        """))
-        db.execute(text("""
-            INSERT INTO login_logs (user_id, email, success, ip_address, user_agent, reason)
-            VALUES (:user_id, :email, :success, :ip_address, :user_agent, :reason)
-        """), {"user_id": user_id, "email": email, "success": success,
-               "ip_address": ip_address, "user_agent": user_agent, "reason": reason})
+        log = models.LoginLog(
+            user_id=user_id,
+            email=email,
+            success=success,
+            ip_address=ip_address,
+            user_agent=user_agent,
+            reason=reason
+        )
+        db.add(log)
         db.commit()
     except Exception as e:
         print(f"Failed to log login attempt: {e}")
@@ -237,28 +228,26 @@ def logout(current_user: models.User = Depends(get_current_user)):
 @router.get("/login-logs")
 def get_login_logs(current_user: models.User = Depends(get_current_user),
                    db: Session = Depends(get_db)):
-    if current_user.role == "admin":
-        result = db.execute(text("""
-            SELECT l.*, u.name as user_name
-            FROM login_logs l
-            LEFT JOIN users u ON l.user_id = u.id
-            ORDER BY l.login_time DESC LIMIT 100
-        """)).fetchall()
-    else:
-        result = db.execute(text("""
-            SELECT l.*, u.name as user_name
-            FROM login_logs l
-            LEFT JOIN users u ON l.user_id = u.id
-            WHERE l.user_id = :user_id
-            ORDER BY l.login_time DESC LIMIT 50
-        """), {"user_id": current_user.id}).fetchall()
+    query = (
+        db.query(models.LoginLog, models.User.name.label("user_name"))
+        .outerjoin(models.User, models.LoginLog.user_id == models.User.id)
+    )
+    if current_user.role != "admin":
+        query = query.filter(models.LoginLog.user_id == current_user.id)
+    limit = 100 if current_user.role == "admin" else 50
+    results = query.order_by(models.LoginLog.login_time.desc()).limit(limit).all()
 
     logs = []
-    for row in result:
+    for log, user_name in results:
         logs.append({
-            "id": row.id, "user_id": row.user_id, "user_name": row.user_name,
-            "email": row.email, "success": row.success,
-            "ip_address": row.ip_address, "user_agent": row.user_agent,
-            "reason": row.reason, "login_time": row.login_time
+            "id": log.id,
+            "user_id": log.user_id,
+            "user_name": user_name,
+            "email": log.email,
+            "success": log.success,
+            "ip_address": log.ip_address,
+            "user_agent": log.user_agent,
+            "reason": log.reason,
+            "login_time": log.login_time.isoformat() if log.login_time else None
         })
     return {"logs": logs}

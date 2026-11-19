@@ -22,10 +22,35 @@ app.add_middleware(
 )
 
 # ─── Startup ─────────────────────────────────────────────────────────────────
+def seed_initial_data():
+    from app.database import SessionLocal
+    from app import models
+    from app.auth import hash_password
+    db = SessionLocal()
+    try:
+        if db.query(models.User).count() == 0:
+            admin_user = models.User(
+                name="aseem",
+                email="aseem@test.com",
+                password=hash_password("admin123"),
+                role="admin",
+                email_verified=True,
+                is_active=True
+            )
+            db.add(admin_user)
+            db.commit()
+            print("[ChefAI] Seeded default admin user: aseem@test.com / admin123")
+    except Exception as e:
+        print(f"[ChefAI] Seed note: {e}")
+        db.rollback()
+    finally:
+        db.close()
+
 @app.on_event("startup")
 def on_startup():
     create_tables()
     print("[ChefAI] Database tables created/verified")
+    seed_initial_data()
     print(f"[ChefAI] Gemini AI: {'ENABLED' if settings.GEMINI_API_KEY else 'MOCK MODE (add GEMINI_API_KEY to .env for real AI)'}")
 
 # ─── Routers ─────────────────────────────────────────────────────────────────

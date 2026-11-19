@@ -1,8 +1,36 @@
 # 🍳 ChefAI – AI-Powered Personalized Cooking Assistant
 
-An intelligent full-stack cooking web app powered by **Python FastAPI + React + AI**.
+An intelligent full-stack cooking web app powered by **Python FastAPI + React + PostgreSQL / SQLite + AI**.
 
-## ⚡ Quick Start (3 steps)
+---
+
+## 🐳 Run with Docker (Recommended - 1 Command)
+
+Docker containerizes the **Frontend (React + Nginx)**, **Backend (FastAPI)**, and **Database (PostgreSQL)** with persistent storage and zero configuration:
+
+```bash
+docker compose up --build -d
+```
+
+| Service | Container URL | Purpose |
+|---|---|---|
+| 🌐 **Frontend** | [http://localhost:5173](http://localhost:5173) or [http://localhost](http://localhost) | React SPA served via Nginx |
+| 🔧 **Backend** | [http://localhost:8000](http://localhost:8000) | FastAPI REST API |
+| 📖 **API Docs** | [http://localhost:8000/docs](http://localhost:8000/docs) | Interactive Swagger UI |
+| 🐘 **Database** | `localhost:5432` | PostgreSQL 16 with persistent volume |
+
+Default Login:
+- **Email:** `aseem@test.com`
+- **Password:** `admin123`
+
+To stop:
+```bash
+docker compose down
+```
+
+---
+
+## ⚡ Local Development Quick Start (Without Docker)
 
 ### Step 1 – Start the Backend
 ```bash
