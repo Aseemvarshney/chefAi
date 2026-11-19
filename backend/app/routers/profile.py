@@ -8,11 +8,13 @@ from app.auth import get_current_user, hash_password, verify_password
 router = APIRouter(prefix="/profile", tags=["User Profile"])
 
 
+@router.get("", response_model=schemas.UserOut)
 @router.get("/", response_model=schemas.UserOut)
 def get_profile(current_user: models.User = Depends(get_current_user)):
     return current_user
 
 
+@router.patch("", response_model=schemas.UserOut)
 @router.patch("/", response_model=schemas.UserOut)
 def update_profile(
     data: schemas.ProfileUpdate,

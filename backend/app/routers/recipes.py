@@ -91,6 +91,7 @@ async def search_recipe(
     return recipe
 
 
+@router.get("", response_model=List[schemas.RecipeOut])
 @router.get("/", response_model=List[schemas.RecipeOut])
 def list_recipes(
     skip: int = 0,

@@ -9,6 +9,7 @@ from app.auth import get_current_user
 router = APIRouter(prefix="/grocery", tags=["Grocery List"])
 
 
+@router.get("", response_model=List[schemas.ShoppingListOut])
 @router.get("/", response_model=List[schemas.ShoppingListOut])
 def get_lists(
     db: Session = Depends(get_db),
@@ -22,6 +23,7 @@ def get_lists(
     )
 
 
+@router.post("", response_model=schemas.ShoppingListOut, status_code=201)
 @router.post("/", response_model=schemas.ShoppingListOut, status_code=201)
 def create_list(
     data: schemas.ShoppingListCreate,

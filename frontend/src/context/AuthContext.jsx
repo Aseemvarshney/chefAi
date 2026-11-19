@@ -1,7 +1,15 @@
 import { createContext, useContext, useState } from 'react';
 import api from '../services/api';
 
-const AuthContext = createContext(null);
+const AuthContext = createContext({
+  user: null,
+  login: async () => {},
+  register: async () => {},
+  sendOTP: async () => {},
+  verifyOTP: async () => {},
+  logout: () => {},
+  refreshUser: async () => {},
+});
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {

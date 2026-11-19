@@ -11,7 +11,9 @@ api.interceptors.request.use(cfg => {
 api.interceptors.response.use(
   r => r,
   err => {
-    if (err.response?.status === 401) {
+    const status = err.response?.status;
+    // 401 = invalid/expired token, 403 = account issue — both mean re-login
+    if ((status === 401 || status === 403) && !window.location.pathname.includes('/login')) {
       localStorage.removeItem('chefai_token');
       localStorage.removeItem('chefai_user');
       window.location.href = '/login';

@@ -110,6 +110,7 @@ export default function ReviewsPage() {
   
   // Form state
   const [form, setForm] = useState({
+    title: '',
     review_text: '',
     rating: 0
   });
@@ -138,6 +139,10 @@ export default function ReviewsPage() {
       return;
     }
     
+    if (!user) {
+      toast.error('You must be logged in to submit a review.');
+      return;
+    }
     setSubmitting(true);
     try {
       const { data } = await api.post('/reviews', form);
@@ -146,7 +151,12 @@ export default function ReviewsPage() {
       setShowForm(false);
       toast.success('Review submitted successfully!');
     } catch (err) {
-      toast.error(err.response?.data?.detail || 'Failed to submit review');
+      const status = err.response?.status;
+      if (status === 401) {
+        toast.error('Session expired. Please log in again.');
+      } else {
+        toast.error(err.response?.data?.detail || 'Failed to submit review');
+      }
     } finally {
       setSubmitting(false);
     }
@@ -192,13 +202,24 @@ export default function ReviewsPage() {
 
       {/* Write Review Button */}
       <div className="animate-scaleIn" style={{ textAlign: 'center', marginBottom: 32 }}>
-        <button 
-          onClick={() => setShowForm(!showForm)}
-          className="btn-primary hover-lift animate-pulse-glow"
-          style={{ padding: '14px 28px', fontSize: 15 }}
-        >
-          ✍️ {t('writeReview')}
-        </button>
+        {user ? (
+          <button 
+            onClick={() => setShowForm(!showForm)}
+            className="btn-primary hover-lift animate-pulse-glow"
+            style={{ padding: '14px 28px', fontSize: 15 }}
+          >
+            ✍️ {t('writeReview')}
+          </button>
+        ) : (
+          <div>
+            <p style={{ color: 'var(--text-muted)', marginBottom: 12 }}>
+              Please log in to write a review.
+            </p>
+            <a href="/login" className="btn-primary hover-lift" style={{ padding: '14px 28px', fontSize: 15, textDecoration: 'none' }}>
+              🔐 Login to Review
+            </a>
+          </div>
+        )}
       </div>
 
       {/* Review Form */}

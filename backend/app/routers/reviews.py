@@ -9,6 +9,7 @@ from typing import List
 router = APIRouter(prefix="/reviews", tags=["Reviews"])
 
 
+@router.post("", response_model=schemas.ReviewOut)
 @router.post("/", response_model=schemas.ReviewOut)
 def create_review(
     review_data: schemas.ReviewCreate,
@@ -41,6 +42,7 @@ def create_review(
     )
 
 
+@router.get("")
 @router.get("/")
 def get_reviews(
     skip: int = 0,

@@ -19,7 +19,7 @@ except ImportError:
         import google.generativeai as genai_legacy
         if settings.GEMINI_API_KEY:
             genai_legacy.configure(api_key=settings.GEMINI_API_KEY)
-            _gemini_model = genai_legacy.GenerativeModel("gemini-1.5-flash")
+            _gemini_model = genai_legacy.GenerativeModel("gemini-2.5-flash")
             GEMINI_AVAILABLE = True
     except ImportError:
         GEMINI_AVAILABLE = False
@@ -27,16 +27,34 @@ except ImportError:
 
 def _call_gemini(prompt: str) -> str:
     """Helper to generate content using whichever Gemini client is available."""
-    if _gemini_client:
-        response = _gemini_client.models.generate_content(
-            model="gemini-1.5-flash",
-            contents=prompt,
-        )
-        return response.text.strip() if response and response.text else ""
-    elif _gemini_model:
-        response = _gemini_model.generate_content(prompt)
-        return response.text.strip() if response and response.text else ""
-    raise RuntimeError("Gemini client/model is not initialized")
+    import threading
+    result = [None]
+    error = [None]
+
+    def _run():
+        try:
+            if _gemini_client:
+                response = _gemini_client.models.generate_content(
+                    model="gemini-3.8-flash",
+                    contents=prompt,
+                )
+                result[0] = response.text.strip() if response and response.text else ""
+            elif _gemini_model:
+                response = _gemini_model.generate_content(prompt)
+                result[0] = response.text.strip() if response and response.text else ""
+            else:
+                error[0] = RuntimeError("Gemini client/model is not initialized")
+        except Exception as e:
+            error[0] = e
+
+    t = threading.Thread(target=_run)
+    t.start()
+    t.join(timeout=6)  # 6-second timeout before fast fallback
+    if t.is_alive():
+        raise RuntimeError("Gemini API timed out after 6 seconds")
+    if error[0]:
+        raise error[0]
+    return result[0] or ""
 
 
 def _extract_json(text: str):

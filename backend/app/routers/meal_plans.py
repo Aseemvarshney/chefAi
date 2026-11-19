@@ -9,6 +9,7 @@ from app.auth import get_current_user
 router = APIRouter(prefix="/meal-plans", tags=["Meal Planner"])
 
 
+@router.get("", response_model=List[schemas.MealPlanOut])
 @router.get("/", response_model=List[schemas.MealPlanOut])
 def get_meal_plans(
     start_date: Optional[str] = None,
@@ -24,6 +25,7 @@ def get_meal_plans(
     return query.order_by(models.MealPlan.date.asc()).all()
 
 
+@router.post("", response_model=schemas.MealPlanOut, status_code=201)
 @router.post("/", response_model=schemas.MealPlanOut, status_code=201)
 def create_meal_plan(
     data: schemas.MealPlanCreate,

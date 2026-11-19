@@ -9,6 +9,7 @@ from app.auth import get_current_user
 router = APIRouter(prefix="/favorites", tags=["Favorites"])
 
 
+@router.get("", response_model=List[schemas.FavoriteOut])
 @router.get("/", response_model=List[schemas.FavoriteOut])
 def get_favorites(
     db: Session = Depends(get_db),
@@ -22,6 +23,7 @@ def get_favorites(
     )
 
 
+@router.post("", response_model=schemas.FavoriteOut, status_code=201)
 @router.post("/", response_model=schemas.FavoriteOut, status_code=201)
 def add_favorite(
     data: schemas.FavoriteCreate,
